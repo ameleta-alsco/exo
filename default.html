@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game World Map - POI Manager</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- Link external CSS -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="sidebar">
+    <h2>Exoborne World Maps</h2>
+    <div class="controls">
+      <button id="add-mode-btn">Add POI</button>
+      <button id="refresh-btn">Refresh</button>
+    </div>
+
+    <div id="poi-form">
+      <h3>Add New POI</h3>
+      <label for="poi-type">Type:</label>
+      <select id="poi-type">
+        <option value="shelter">Rebirth Shelter</option>
+        <option value="bunker">Rebirth Bunker</option>
+        <option value="fragment">Clearance Fragment</option>
+        <option value="machinery">Machinery Parts</option>
+        <option value="electronics">Electronics</option>
+        <option value="npc">NPC</option>
+        <option value="secret">Secret</option>
+        <option value="boss">Boss</option>
+      </select>
+      <label for="poi-desc">Note:</label>
+      <textarea id="poi-desc" placeholder="Add a note about this POI (shown on hover)"></textarea>
+      <button id="save-poi-btn">Save</button>
+      <button id="cancel-poi-btn">Cancel</button>
+    </div>
+
+    <div id="poi-list">
+        <h3>POI Groups</h3>
+        <div id="poi-groups-container">
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-shelter" class="group-checkbox" data-type="shelter" checked>
+                    <label for="group-shelter" style="color: #ff5252">Rebirth Shelters</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-bunker" class="group-checkbox" data-type="bunker" checked>
+                    <label for="group-bunker" style="color: #ff9800">Rebirth Bunker</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-fragment" class="group-checkbox" data-type="fragment" checked>
+                    <label for="group-fragment" style="color: #4caf50">Clearance Fragments</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-dungeon" class="group-checkbox" data-type="machinery" checked>
+                    <label for="group-dungeon" style="color: #2e7d32">Machinery Parts</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-resource" class="group-checkbox" data-type="electronics" checked>
+                    <label for="group-resource" style="color: #2196f3">Electronics</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-landmark" class="group-checkbox" data-type="landmark" checked>
+                    <label for="group-landmark" style="color: #9c27b0">Landmarks</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-npc" class="group-checkbox" data-type="npc" checked>
+                    <label for="group-npc" style="color: #ff9800">NPCs</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-secret" class="group-checkbox" data-type="secret" checked>
+                    <label for="group-secret" style="color: #607d8b">Secrets</label>
+                </div>
+            </div>
+            <div class="poi-group">
+                <div class="poi-group-header">
+                    <input type="checkbox" id="group-boss" class="group-checkbox" data-type="boss" checked>
+                    <label for="group-boss" style="color: #e91e63">Bosses</label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid #444; position: sticky; bottom: 0; background-color: #272727;">
+      <a href="https://www.youtube.com/@warhogy" target="_blank"
+         style="display: flex; align-items: center; color: #fff; text-decoration: none; padding: 10px 0;">
+         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" style="margin-right: 10px;">
+           <path fill="#ff0000" d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+         </svg>
+         Warhogy
+      </a>
+    </div>
+  </div>
+
+  <div id="map-container">
+    <div id="coordinates-display" style="position: absolute; top: 10px; left: 10px; background-color: rgba(0, 0, 0, 0.7); color: white; padding: 5px 10px; border-radius: 4px; z-index: 20; font-size: 14px;">
+      X: 0, Y: 0
+    </div>
+    <div id="game-map"></div>
+    <div class="map-controls">
+      <button id="zoom-in">+</button>
+      <button id="zoom-out">-</button>
+      <button id="reset-view">⟲</button>
+    </div>
+  </div>
+
+  <div class="notification" id="notification"></div>
+  <div id="context-menu"></div>
+
+  <!-- Link external JS -->
+  <script src="app.js"></script>
+</body>
+</html>

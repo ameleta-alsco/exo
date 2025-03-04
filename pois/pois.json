@@ -1,0 +1,62 @@
+[
+    {
+        "id": "poi-1",
+        "name": "POI1",
+        "type": "shelter",
+        "description": "Shelters point of interest",
+        "x": 500,
+        "y": 500,
+        "visible": true,
+        "approved": true
+    },
+    {
+        "id": "poi-2",
+        "name": "POI2",
+        "type": "fragment",
+        "description": "Vendor point of interest",
+        "x": 800,
+        "y": 700,
+        "visible": true,
+        "approved": true
+    },
+    {
+        "id": "poi-4",
+        "name": "POI4",
+        "type": "electronics",
+        "description": "Electronics point of interest",
+        "x": 1500,
+        "y": 800,
+        "visible": true,
+        "approved": true
+    },
+    {
+        "id": "poi-5",
+        "name": "POI5",
+        "type": "bunker",
+        "description": "Rebirth Bunker point of interest",
+        "x": 600,
+        "y": 1300,
+        "visible": true,
+        "approved": true
+    },
+    {
+        "id": "poi-7",
+        "name": "POI7",
+        "type": "secret",
+        "description": "Secret point of interest",
+        "x": 1700,
+        "y": 600,
+        "visible": true,
+        "approved": true
+    },
+    {
+        "id": "poi-8",
+        "name": "POI8",
+        "type": "boss",
+        "description": "Boss point of interest",
+        "x": 1000,
+        "y": 950,
+        "visible": true,
+        "approved": true
+    }
+] 

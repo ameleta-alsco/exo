@@ -1,0 +1,46 @@
+[
+  {
+    "id": "poi-1740844552014",
+    "name": "POI-2014",
+    "type": "machinery",
+    "description": "zz",
+    "x": 791,
+    "y": 495,
+    "visible": true,
+    "approved": false,
+    "dateAdded": "2025-03-01T15:55:52.014Z"
+  },
+  {
+    "id": "poi-1740844958283",
+    "name": "POI-8283",
+    "type": "electronics",
+    "description": "check the building roofs",
+    "x": 1826,
+    "y": 541,
+    "visible": true,
+    "approved": false,
+    "dateAdded": "2025-03-01T16:02:38.283Z"
+  },
+  {
+    "id": "poi-1740846098931",
+    "name": "POI-8931",
+    "type": "shelter",
+    "description": "klk",
+    "x": 971.5,
+    "y": 698,
+    "visible": true,
+    "approved": false,
+    "dateAdded": "2025-03-01T16:21:38.931Z"
+  },
+  {
+    "id": "poi-1740846213242",
+    "name": "POI-3242",
+    "type": "secret",
+    "description": "klkl",
+    "x": 659,
+    "y": 655,
+    "visible": true,
+    "approved": false,
+    "dateAdded": "2025-03-01T16:23:33.242Z"
+  }
+]

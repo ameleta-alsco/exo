@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game World Map - POI Manager</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #sidebar {
+            width: 250px;
+            background-color: #272727;
+            color: #fff;
+            padding: 15px;
+            overflow-y: auto;
+            border-right: 1px solid #444;
+        }
+
+        #map-container {
+            flex: 1;
+            background-color: #1a1a1a;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #game-map {
+            position: absolute;
+            background-image: url('maps/maynard_map.jpg');
+            background-size: contain;
+            transform-origin: 0 0;
+            cursor: move;
+        }
+
+        .poi-marker {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            margin-left: -16px;
+            margin-top: -32px;
+            cursor: pointer;
+            z-index: 10;
+            filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7));
+        }
+
+        .poi-marker svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .poi-tooltip {
+            position: fixed;
+            /* Fixed to always stay in place */
+            top: 10px;
+            /* Near the top of the screen */
+            left: 50%;
+            /* Center horizontally */
+            transform: translateX(-50%);
+            /* Ensure it is perfectly centered */
+            background-color: rgba(0, 0, 0, 0.85);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            z-index: 100;
+            white-space: nowrap;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s ease-in-out;
+            pointer-events: none;
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .poi-marker.selected {
+            z-index: 11;
+        }
+
+        /* .poi-marker.selected svg path {
+            fill: #ffcc00;
+        } */
+
+        #poi-list {
+            margin-top: 15px;
+        }
+
+        .poi-item {
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+        }
+
+        .poi-checkbox {
+            margin-right: 8px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 8px;
+        }
+
+        .controls {
+            margin-top: 20px;
+        }
+
+        button {
+            background-color: #444;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+
+        button:hover {
+            background-color: #555;
+        }
+
+        #add-mode-btn.active {
+            background-color: #4CAF50;
+        }
+
+        #poi-form {
+            margin-top: 20px;
+            display: none;
+            background-color: #333;
+            padding: 10px;
+            border-radius: 4px;
+        }
+
+        #poi-form input,
+        #poi-form textarea,
+        #poi-form select {
+            width: 100%;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: white;
+        }
+
+        #poi-form textarea {
+            resize: vertical;
+            height: 80px;
+        }
+
+        #poi-form label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        #poi-form button {
+            margin-top: 5px;
+        }
+
+        .map-controls {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            z-index: 20;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-controls button {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 5px;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 15px;
+            border-radius: 4px;
+            z-index: 100;
+            display: none;
+        }
+
+        .poi-actions {
+            margin-left: auto;
+        }
+
+        .poi-actions button {
+            padding: 4px 8px;
+            font-size: 12px;
+            margin-right: 0;
+            margin-left: 5px;
+        }
+
+        .poi-group {
+            margin-bottom: 12px;
+            display: block;
+        }
+
+        .poi-group-header {
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            border-radius: 4px;
+            background-color: #333;
+            font-weight: bold;
+        }
+
+        #context-menu {
+            position: absolute;
+            display: none;
+            background-color: #333;
+            color: white;
+            border-radius: 4px;
+            padding: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+            width: 250px;
+            z-index: 100;
+        }
+
+        .context-menu-form {
+            padding: 10px;
+        }
+
+        .context-menu-field {
+            margin-bottom: 10px;
+        }
+
+        .context-menu-field label {
+            display: block;
+            margin-bottom: 3px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .context-menu-field input,
+        .context-menu-field select,
+        .context-menu-field textarea {
+            width: 100%;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid #555;
+            background-color: #444;
+            color: white;
+            font-size: 12px;
+        }
+
+        .context-menu-field textarea {
+            height: 60px;
+            resize: vertical;
+        }
+
+        .context-menu-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .context-menu-buttons button {
+            padding: 5px 10px;
+            font-size: 12px;
+            flex: 1;
+            margin: 0 3px;
+        }
+
+        .context-menu-buttons button:first-child {
+            margin-left: 0;
+        }
+
+        .context-menu-buttons button:last-child {
+            margin-right: 0;
+        }
+
+        /* Style for POI type dropdown in context menu to show colors */
+        #context-poi-type option[value="shelter"] {
+            background-color: #272727;
+            color: #ffc107;
+        }
+
+        #context-poi-type option[value="vendor"] {
+            background-color: #272727;
+            color: #4caf50;
+        }
+
+        #context-poi-type option[value="dungeon"] {
+            background-color: #272727;
+            color: #f44336;
+        }
+
+        #context-poi-type option[value="resource"] {
+            background-color: #272727;
+            color: #2196f3;
+        }
+
+        #context-poi-type option[value="landmark"] {
+            background-color: #272727;
+            color: #9c27b0;
+        }
+
+        #context-poi-type option[value="npc"] {
+            background-color: #272727;
+            color: #ff9800;
+        }
+
+        #context-poi-type option[value="secret"] {
+            background-color: #272727;
+            color: #607d8b;
+        }
+
+        #context-poi-type option[value="boss"] {
+            background-color: #272727;
+            color: #e91e63;
+        }
+
+        #context-delete-btn {
+            background-color: #f44336;
+        }
+
+        #context-delete-btn:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <h2>Exoborne World Maps</h2>
+        <div class="controls">
+            <button id="add-mode-btn">Add POI</button>
+            <button id="refresh-btn">Refresh</button>
+        </div>
+
+        <div id="poi-form">
+            <h3>Add New POI</h3>
+            <label for="poi-type">Type:</label>
+            <select id="poi-type">
+                <option value="shelter">Rebirth Shelters</option>
+                <option value="vendor">Vendor</option>
+                <option value="dungeon">Dungeon</option>
+                <option value="resource">Resource</option>
+                <option value="landmark">Landmark</option>
+                <option value="npc">NPC</option>
+                <option value="secret">Secret</option>
+                <option value="boss">Boss</option>
+            </select>
+            <label for="poi-desc">Note:</label>
+            <textarea id="poi-desc" placeholder="Add a note about this POI (shown on hover)"></textarea>
+            <button id="save-poi-btn">Save</button>
+            <button id="cancel-poi-btn">Cancel</button>
+        </div>
+
+        <div id="poi-list">
+            <h3>POI Groups</h3>
+            <div id="poi-groups-container">
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-shelter" class="group-checkbox" data-type="shelter" checked>
+                        <label for="group-shelter" style="color: #ffc107">Rebith Shelters</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-vendor" class="group-checkbox" data-type="vendor" checked>
+                        <label for="group-vendor" style="color: #4caf50">Vendors</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-dungeon" class="group-checkbox" data-type="dungeon" checked>
+                        <label for="group-dungeon" style="color: #f44336">Dungeons</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-resource" class="group-checkbox" data-type="resource" checked>
+                        <label for="group-resource" style="color: #2196f3">Resources</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-landmark" class="group-checkbox" data-type="landmark" checked>
+                        <label for="group-landmark" style="color: #9c27b0">Landmarks</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-npc" class="group-checkbox" data-type="npc" checked>
+                        <label for="group-npc" style="color: #ff9800">NPCs</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-secret" class="group-checkbox" data-type="secret" checked>
+                        <label for="group-secret" style="color: #607d8b">Secrets</label>
+                    </div>
+                </div>
+                <div class="poi-group">
+                    <div class="poi-group-header">
+                        <input type="checkbox" id="group-boss" class="group-checkbox" data-type="boss" checked>
+                        <label for="group-boss" style="color: #e91e63">Bosses</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="map-container">
+        <div id="game-map"></div>
+
+        <div class="map-controls">
+            <button id="zoom-in">+</button>
+            <button id="zoom-out">-</button>
+            <button id="reset-view">⟲</button>
+        </div>
+    </div>
+
+    <div class="notification" id="notification"></div>
+
+    <div id="context-menu"></div>
+
+    <script>
+        // Configuration
+        const API_ENDPOINT = '/api'; // Replace with your actual API endpoint
+        const MAP_WIDTH = 2000;
+        const MAP_HEIGHT = 2000;
+        const STORAGE_KEY = 'game_map_pois';
+        const DEFAULT_ZOOM = 0.5;
+
+        // State management
+        let pois = [
+            {
+                id: 'poi-1',
+                name: 'POI1',
+                type: 'shelter',
+                description: 'Shelters point of interest',
+                x: 500,
+                y: 500,
+                visible: true
+            },
+            {
+                id: 'poi-2',
+                name: 'POI2',
+                type: 'vendor',
+                description: 'Vendor point of interest',
+                x: 800,
+                y: 700,
+                visible: true
+            },
+            {
+                id: 'poi-3',
+                name: 'POI3',
+                type: 'dungeon',
+                description: 'Dungeon point of interest',
+                x: 1200,
+                y: 400,
+                visible: true
+            },
+            {
+                id: 'poi-4',
+                name: 'POI4',
+                type: 'resource',
+                description: 'Resource point of interest',
+                x: 1500,
+                y: 800,
+                visible: true
+            },
+            {
+                id: 'poi-5',
+                name: 'POI5',
+                type: 'landmark',
+                description: 'Landmark point of interest',
+                x: 600,
+                y: 1300,
+                visible: true
+            },
+            {
+                id: 'poi-6',
+                name: 'POI6',
+                type: 'npc',
+                description: 'NPC point of interest',
+                x: 900,
+                y: 1100,
+                visible: true
+            },
+            {
+                id: 'poi-7',
+                name: 'POI7',
+                type: 'secret',
+                description: 'Secret point of interest',
+                x: 1700,
+                y: 600,
+                visible: true
+            },
+            {
+                id: 'poi-8',
+                name: 'POI8',
+                type: 'boss',
+                description: 'Boss point of interest',
+                x: 1000,
+                y: 950,
+                visible: true
+            }
+        ];
+        let currentZoom = DEFAULT_ZOOM;
+        let isDragging = false;
+        let dragStart = { x: 0, y: 0 };
+        let mapPosition = { x: 0, y: 0 };
+        let addMode = false;
+        let tempPoi = null;
+        let selectedPoi = null;
+        let lastSyncTime = 0;
+
+        // Update the context menu HTML structure
+        function updateContextMenuHtml() {
+            $('#context-menu').html(`
+        <div class="context-menu-form">
+            <div class="context-menu-field">
+                <label for="context-poi-type">Type:</label>
+                <select id="context-poi-type">
+                    <option value="shelter">Rebirth Shelters</option>
+                    <option value="vendor">Vendor</option>
+                    <option value="dungeon">Dungeon</option>
+                    <option value="resource">Resource</option>
+                    <option value="landmark">Landmark</option>
+                    <option value="npc">NPC</option>
+                    <option value="secret">Secret</option>
+                    <option value="boss">Boss</option>
+                </select>
+            </div>
+            <div class="context-menu-field">
+                <label for="context-poi-note">Note:</label>
+                <textarea id="context-poi-note" placeholder="Add a note about this POI (shown on hover)"></textarea>
+            </div>
+            <div class="context-menu-buttons">
+                <button id="context-save-btn">Save</button>
+                <button id="context-delete-btn" style="background-color: #f44336;">Delete</button>
+                <button id="context-cancel-btn">Cancel</button>
+            </div>
+        </div>
+    `);
+
+            // Set up event handlers
+            $('#context-save-btn').off('click').on('click', saveEditedPoi);
+            $('#context-cancel-btn').off('click').on('click', function () {
+                $('#context-menu').hide();
+            });
+
+            $('#context-delete-btn').off('click').on('click', function () {
+                const poiId = $('#context-menu').data('poi-id');
+                if (poiId) {
+                    deletePoi(poiId);
+                    $('#context-menu').hide();
+                }
+            });
+
+            // Set the color of the dropdown
+            $('#context-poi-type').on('change', function () {
+                const selectedType = $(this).val();
+                $(this).css('color', getPoiColor(selectedType));
+            });
+        }
+
+        // Initialize the map
+        function initMap() {
+            const mapElement = $('#game-map');
+            mapElement.css({
+                width: MAP_WIDTH + 'px',
+                height: MAP_HEIGHT + 'px',
+                transform: `scale(${currentZoom}) translate(${mapPosition.x}px, ${mapPosition.y}px)`
+            });
+
+            // Center the map initially
+            resetMapView();
+
+            // Mouse events for dragging
+            mapElement.on('mousedown', startDragging);
+            $(document).on('mousemove', dragMap);
+            $(document).on('mouseup', stopDragging);
+
+            // Map controls
+            $('#zoom-in').on('click', () => changeZoom(0.1));
+            $('#zoom-out').on('click', () => changeZoom(-0.1));
+            $('#reset-view').on('click', resetMapView);
+
+            // POI controls
+            $('#add-mode-btn').on('click', toggleAddMode);
+            $('#refresh-btn').on('click', syncWithServer);
+            $('#save-poi-btn').on('click', savePoi);
+            $('#cancel-poi-btn').on('click', cancelAddPoi);
+
+            // Initialize the context menu
+            updateContextMenuHtml();
+
+            // Load POIs
+            loadPoisFromStorage();
+            syncWithServer();
+        }
+
+        // Map interaction functions
+        function startDragging(e) {
+            if (addMode) {
+                // In add mode, clicking creates a POI instead of dragging
+                const mapOffset = $('#game-map').offset();
+                const clickX = (e.pageX - mapOffset.left) / currentZoom;
+                const clickY = (e.pageY - mapOffset.top) / currentZoom;
+
+                tempPoi = {
+                    id: 'temp-' + Date.now(),
+                    name: `POI-${Date.now().toString().slice(-4)}`,
+                    type: 'shelter',
+                    description: '',
+                    x: clickX,
+                    y: clickY,
+                    visible: true
+                };
+
+                // Show the form
+                $('#poi-type').val('shelter');
+                $('#poi-desc').val('');
+                $('#poi-form').show();
+                return;
+            }
+
+            isDragging = true;
+            dragStart = {
+                x: e.pageX - mapPosition.x * currentZoom,
+                y: e.pageY - mapPosition.y * currentZoom
+            };
+            $('#game-map').css('cursor', 'grabbing');
+        }
+
+        function dragMap(e) {
+            if (!isDragging) return;
+
+            mapPosition = {
+                x: (e.pageX - dragStart.x) / currentZoom,
+                y: (e.pageY - dragStart.y) / currentZoom
+            };
+
+            updateMapTransform();
+        }
+
+        function stopDragging() {
+            isDragging = false;
+            $('#game-map').css('cursor', 'move');
+        }
+
+        function changeZoom(delta) {
+            const oldZoom = currentZoom;
+            currentZoom = Math.max(0.2, Math.min(2, currentZoom + delta));
+
+            // Adjust position to zoom towards center of viewport
+            const containerWidth = $('#map-container').width();
+            const containerHeight = $('#map-container').height();
+            const centerX = containerWidth / 2;
+            const centerY = containerHeight / 2;
+
+            const zoomRatio = currentZoom / oldZoom;
+            const centerMapX = centerX / oldZoom - mapPosition.x;
+            const centerMapY = centerY / oldZoom - mapPosition.y;
+
+            mapPosition.x = -centerMapX + centerX / currentZoom;
+            mapPosition.y = -centerMapY + centerY / currentZoom;
+
+            updateMapTransform();
+        }
+
+        function updateMapTransform() {
+            $('#game-map').css('transform', `scale(${currentZoom}) translate(${mapPosition.x}px, ${mapPosition.y}px)`);
+        }
+
+        function resetMapView() {
+            const containerWidth = $('#map-container').width();
+            const containerHeight = $('#map-container').height();
+
+            currentZoom = DEFAULT_ZOOM;
+            mapPosition = {
+                x: (containerWidth / currentZoom - MAP_WIDTH) / 2,
+                y: (containerHeight / currentZoom - MAP_HEIGHT) / 2
+            };
+
+            updateMapTransform();
+        }
+
+        // POI management functions
+        function toggleAddMode() {
+            addMode = !addMode;
+            $('#add-mode-btn').toggleClass('active', addMode);
+
+            if (addMode) {
+                $('#game-map').css('cursor', 'crosshair');
+                showNotification('Click on the map to add a POI');
+            } else {
+                $('#game-map').css('cursor', 'move');
+                $('#poi-form').hide();
+                tempPoi = null;
+            }
+        }
+
+        function savePoi() {
+            if (!tempPoi) return;
+
+            const poiType = $('#poi-type').val().trim(); // Get the selected type
+            const poiColor = getPoiColor(poiType); // Get the correct color
+
+            const poi = {
+                id: 'poi-' + Date.now(),
+                name: tempPoi.name,
+                type: poiType,
+                description: $('#poi-desc').val().trim(),
+                x: tempPoi.x,
+                y: tempPoi.y,
+                visible: true
+            };
+
+            pois.push(poi);
+            renderPois(); // This ensures the POI appears with the correct color
+            savePoisToStorage();
+
+            // Reset form and add mode
+            $('#poi-form').hide();
+            tempPoi = null;
+            addMode = false;
+            $('#add-mode-btn').removeClass('active');
+            $('#game-map').css('cursor', 'move');
+
+            showNotification('POI added successfully');
+
+            // Sync with server
+            syncWithServer(true);
+        }
+
+        function cancelAddPoi() {
+            $('#poi-form').hide();
+            tempPoi = null;
+        }
+
+        function togglePoiVisibility(id) {
+            const poi = pois.find(p => p.id === id);
+            if (poi) {
+                poi.visible = !poi.visible;
+                renderPois();
+                savePoisToStorage();
+            }
+        }
+
+        function selectPoi(id) {
+            selectedPoi = id;
+            renderPois();
+
+            // Scroll to the POI if it's far from view
+            const poi = pois.find(p => p.id === id);
+            if (poi) {
+                const containerWidth = $('#map-container').width();
+                const containerHeight = $('#map-container').height();
+
+                const poiScreenX = poi.x * currentZoom + mapPosition.x * currentZoom;
+                const poiScreenY = poi.y * currentZoom + mapPosition.y * currentZoom;
+
+                // Check if POI is far from view
+                const margin = 100; // pixels
+                const isOutsideX = poiScreenX < margin || poiScreenX > containerWidth - margin;
+                const isOutsideY = poiScreenY < margin || poiScreenY > containerHeight - margin;
+
+                if (isOutsideX || isOutsideY) {
+                    // Center the POI
+                    mapPosition = {
+                        x: containerWidth / (2 * currentZoom) - poi.x,
+                        y: containerHeight / (2 * currentZoom) - poi.y
+                    };
+                    updateMapTransform();
+                }
+            }
+        }
+
+        function deletePoi(poiId) {
+            if (confirm('Are you sure you want to delete this POI?')) {
+                pois = pois.filter(p => p.id !== poiId);
+                renderPois();
+                savePoisToStorage();
+                showNotification('POI deleted successfully');
+            }
+        }
+
+        // Show context menu for adding a new POI
+        function showContextMenu(screenX, screenY, mapX, mapY) {
+            const contextMenu = $('#context-menu');
+
+            // Ensure we have the latest context menu HTML
+            updateContextMenuHtml();
+
+            // Reset form fields
+            $('#context-poi-type').val('shelter'); // Default to first option
+            $('#context-poi-note').val('');
+
+            // Hide the delete button for new POIs
+            $('#context-delete-btn').hide();
+
+            // Set the color of the type dropdown
+            $('#context-poi-type').css('color', getPoiColor($('#context-poi-type').val()));
+
+            // Store map coordinates as data attributes on the context menu
+            contextMenu.data('map-x', mapX);
+            contextMenu.data('map-y', mapY);
+
+            // Position and show menu
+            contextMenu.css({
+                top: screenY,
+                left: screenX
+            }).show();
+
+            // Set up event handlers for the buttons
+            $('#context-save-btn').off('click').on('click', saveContextMenuPoi);
+            $('#context-cancel-btn').off('click').on('click', function () {
+                contextMenu.hide();
+            });
+
+            // Prevent event bubbling to document click which would close the menu
+            contextMenu.off('click').on('click', function (e) {
+                e.stopPropagation();
+            });
+        }
+
+        // Show context menu for editing an existing POI
+        function showEditContextMenu(poiId, screenX, screenY) {
+            // Find the POI by ID
+            const poi = pois.find(p => p.id === poiId);
+            if (!poi) return;
+
+            const contextMenu = $('#context-menu');
+
+            // Ensure we have the latest context menu HTML
+            updateContextMenuHtml();
+
+            // Pre-fill with POI data
+            $('#context-poi-type').val(poi.type);
+            $('#context-poi-note').val(poi.description);
+
+            // Store POI ID for reference
+            contextMenu.data('poi-id', poiId);
+
+            // Position the menu at the right-clicked location
+            contextMenu.css({
+                top: screenY + 'px',
+                left: screenX + 'px',
+                display: 'block'
+            });
+
+            // Ensure Delete button is shown
+            $('#context-delete-btn').show();
+        }
+
+
+        // Save a new POI from the context menu
+        function saveContextMenuPoi() {
+            const contextMenu = $('#context-menu');
+            const mapX = contextMenu.data('map-x');
+            const mapY = contextMenu.data('map-y');
+
+            // Generate automatic name using timestamp
+            const name = `POI-${Date.now().toString().slice(-4)}`;
+
+            // Get the type directly from the DOM element
+            const typeSelect = document.getElementById('context-poi-type');
+            const type = typeSelect ? typeSelect.value : 'shelter';
+
+            const description = $('#context-poi-note').val().trim();
+
+            const poi = {
+                id: 'poi-' + Date.now(),
+                name: name,
+                type: type,
+                description: description,
+                x: mapX,
+                y: mapY,
+                visible: true
+            };
+
+            pois.push(poi);
+            renderPois();
+            savePoisToStorage();
+            contextMenu.hide();
+            showNotification('POI added successfully');
+
+            // Select the new POI after adding it
+            selectPoi(poi.id);
+
+            // Sync with server
+            syncWithServer(true);
+        }
+
+        // Save an edited POI from the context menu
+        function saveEditedPoi() {
+            const contextMenu = $('#context-menu');
+            const poiId = contextMenu.data('poi-id');
+
+            // Find the POI
+            const poi = pois.find(p => p.id === poiId);
+            if (!poi) return;
+
+            // Update POI data
+            poi.type = $('#context-poi-type').val();
+            poi.description = $('#context-poi-note').val().trim();
+
+            // Update display
+            renderPois();
+            savePoisToStorage();
+            contextMenu.hide();
+            showNotification('POI updated successfully');
+
+            // Keep it selected
+            selectPoi(poiId);
+
+            // Sync with server
+            syncWithServer(true);
+        }
+
+        // Rendering functions
+        function renderPois() {
+            $('.poi-marker').remove(); // Clear existing markers
+            $('.poi-tooltip').remove(); // Remove existing tooltip to avoid duplicates
+
+            // Create a single tooltip element that stays at the top center
+            const tooltip = $(`<div class="poi-tooltip"></div>`);
+            $('body').append(tooltip); // Append to body so it stays at the top
+
+            pois.filter(p => p.visible).forEach(poi => {
+                const poiColor = getPoiColor(poi.type); // Get the correct color
+
+                const marker = $(`
+            <div class="poi-marker" data-id="${poi.id}" style="left: ${poi.x}px; top: ${poi.y}px;">
+                <svg viewBox="0 0 24 24">
+                    <path fill="${poiColor}" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+            </div>
+        `);
+
+                // Show tooltip in the top center when hovering over a POI
+                marker.on('mouseenter', function () {
+                    tooltip.text(poi.description);
+                    tooltip.css({
+                        visibility: 'visible',
+                        opacity: 1
+                    });
+                });
+
+                marker.on('mouseleave', function () {
+                    tooltip.css({
+                        visibility: 'hidden',
+                        opacity: 0
+                    });
+                });
+
+                $('#game-map').append(marker);
+            });
+        }
+
+
+
+        function getPoiColor(type) {
+            // Normalize the type to lower case and trim any whitespace
+            const normalizedType = String(type).toLowerCase().trim();
+
+            // Return different colors based on POI type
+            switch (normalizedType) {
+                case 'shelter': return '#ffc107'; // Yellow
+                case 'vendor': return '#4caf50'; // Green
+                case 'dungeon': return '#f44336'; // Red
+                case 'resource': return '#2196f3'; // Blue
+                case 'landmark': return '#9c27b0'; // Purple
+                case 'npc': return '#ff9800'; // Orange
+                case 'secret': return '#607d8b'; // Blue Grey
+                case 'boss': return '#e91e63'; // Pink
+                default: {
+                    console.log('Unknown POI type:', type);
+                    return '#ffffff'; // White for unknown types
+                }
+            }
+        }
+
+        // Storage and sync functions
+        function loadPoisFromStorage() {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                try {
+                    const data = JSON.parse(storedData);
+                    pois = data.pois || pois; // Use default pois if none in storage
+                    lastSyncTime = data.lastSyncTime || 0;
+                    renderPois();
+                } catch (e) {
+                    console.error('Error loading POIs from storage:', e);
+                    // If error loading, still render default POIs
+                    renderPois();
+                }
+            } else {
+                // If no storage data exists, save our default POIs
+                savePoisToStorage();
+                renderPois();
+            }
+        }
+
+        function savePoisToStorage() {
+            const dataToStore = {
+                pois: pois,
+                lastSyncTime: Date.now()
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(dataToStore));
+        }
+
+        function syncWithServer(force = false) {
+            // In a real app, you would compare timestamps and only sync when needed
+            // For this example, we'll simulate syncing
+
+            if (force || Date.now() - lastSyncTime > 60000) { // Sync if forced or last sync was more than 1 minute ago
+                showNotification('Syncing with server...');
+
+                // Simulate API call
+                setTimeout(() => {
+                    lastSyncTime = Date.now();
+                    savePoisToStorage();
+                    showNotification('Sync complete');
+                }, 1000);
+
+                // In a real app, you would use AJAX:
+                /*
+                $.ajax({
+                    url: API_ENDPOINT + '/pois',
+                    method: 'POST',
+                    data: JSON.stringify({
+                        pois: pois,
+                        lastSyncTime: lastSyncTime
+                    }),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        // Merge server-side changes
+                        if (response.pois) {
+                            pois = response.pois;
+                            renderPois();
+                        }
+                        lastSyncTime = Date.now();
+                        savePoisToStorage();
+                        showNotification('Sync complete');
+                    },
+                    error: function() {
+                        showNotification('Sync failed', true);
+                    }
+                });
+                */
+            }
+        }
+
+        function showNotification(message, isError = false) {
+            const notification = $('#notification');
+            notification.text(message);
+            notification.css('background-color', isError ? 'rgba(255, 0, 0, 0.8)' : 'rgba(0, 0, 0, 0.8)');
+            notification.fadeIn(300).delay(2000).fadeOut(300);
+        }
+
+        // Toggle group visibility
+        function toggleGroupVisibility(type, visible) {
+            pois.forEach(poi => {
+                if (poi.type === type) {
+                    poi.visible = visible;
+                }
+            });
+            renderPois();
+            savePoisToStorage();
+        }
+
+        // Main function
+        $(document).ready(function () {
+            initMap();
+
+            // Handle right-click event to show context menu
+            $('#game-map').on('contextmenu', function (e) {
+                e.preventDefault(); // Prevent the default context menu
+
+                const mapOffset = $('#game-map').offset();
+                const clickX = (e.pageX - mapOffset.left) / currentZoom;
+                const clickY = (e.pageY - mapOffset.top) / currentZoom;
+
+                // Check if we clicked on a POI
+                const clickedPoi = $(e.target).closest('.poi-marker');
+
+                if (clickedPoi.length) {
+                    // If we clicked on a POI, show edit menu for that POI
+                    const poiId = clickedPoi.data('id');
+                    showEditContextMenu(poiId, e.pageX, e.pageY);
+                } else {
+                    // If we clicked on empty map area, show menu to create a new POI
+                    showContextMenu(e.pageX, e.pageY, clickX, clickY);
+                }
+            });
+
+            // Prevent context menu from closing when clicking inside it
+            $('#context-menu').on('click', function (e) {
+                e.stopPropagation();
+            });
+
+            $(document).on('click', function (e) {
+                // Only close the context menu if the click wasn't inside the menu
+                if ($(e.target).closest('#context-menu').length === 0) {
+                    $('#context-menu').hide();
+                }
+            });
+
+
+
+            // Update the color of the dropdown when changing type
+            $('#context-poi-type').on('change', function () {
+                const selectedType = $(this).val();
+                $(this).css('color', getPoiColor(selectedType));
+            });
+
+            // Do the same for the form in the sidebar
+            $('#poi-type').on('change', function () {
+                const selectedType = $(this).val();
+                $(this).css('color', getPoiColor(selectedType));
+            });
+
+            // Set initial color for the type dropdown in the sidebar form
+            $('#poi-type').css('color', getPoiColor($('#poi-type').val()));
+
+            // Handle mouse wheel zooming
+            $('#map-container').on('wheel', function (e) {
+                e.preventDefault();
+                const delta = e.originalEvent.deltaY > 0 ? -0.1 : 0.1;
+                changeZoom(delta);
+            });
+
+            // Handle group checkbox events
+            $('.group-checkbox').on('change', function () {
+                const type = $(this).data('type');
+                const checked = $(this).prop('checked');
+                toggleGroupVisibility(type, checked);
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,349 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+  }
+  
+  #sidebar {
+    width: 250px;
+    background-color: #272727;
+    color: #fff;
+    padding: 15px;
+    overflow-y: auto;
+    border-right: 1px solid #444;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  #map-container {
+    flex: 1;
+    background-color: #1a1a1a;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  #game-map {
+    position: absolute;
+    background-image: url('maps/maynard_map.jpg');
+    background-size: contain;
+    background-repeat: no-repeat;
+    /* Prevent repetition */
+    transform-origin: 0 0;
+    cursor: move;
+  }
+  
+  .poi-marker {
+    position: absolute;
+    width: 32px;
+    height: 32px;
+    margin-left: -16px;
+    margin-top: -32px;
+    cursor: pointer;
+    z-index: 10;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.7));
+  }
+  
+  .poi-marker svg {
+    width: 100%;
+    height: 100%;
+  }
+  
+  .poi-tooltip {
+    position: fixed;
+    transform: translateX(-50%) translateY(-100%);
+    background-color: #333;
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 100;
+    white-space: nowrap;
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+    text-align: center;
+    min-width: 150px;
+    margin-top: -10px;
+  }
+  
+  .tooltip-description {
+    margin-bottom: 4px;
+  }
+  
+  .approval-status {
+    font-size: 11px;
+    color: #9e9e9e;
+    text-align: center;
+    font-style: italic;
+  }
+  
+  .poi-marker.selected {
+    z-index: 11;
+  }
+  
+  /* .poi-marker.selected svg path {
+    fill: #ffcc00;
+  } */
+  
+  #poi-list {
+    margin-top: 15px;
+  }
+  
+  .poi-item {
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .poi-checkbox {
+    margin-right: 8px;
+  }
+  
+  h2 {
+    margin-bottom: 15px;
+    font-size: 18px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 8px;
+  }
+  
+  .controls {
+    margin-top: 20px;
+  }
+  
+  button {
+    background-color: #444;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+  }
+  
+  button:hover {
+    background-color: #555;
+  }
+  
+  #add-mode-btn.active {
+    background-color: #4CAF50;
+  }
+  
+  #poi-form {
+    margin-top: 20px;
+    display: none;
+    background-color: #333;
+    padding: 10px;
+    border-radius: 4px;
+  }
+  
+  #poi-form input,
+  #poi-form textarea,
+  #poi-form select {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: white;
+  }
+  
+  #poi-form textarea {
+    resize: vertical;
+    height: 80px;
+  }
+  
+  #poi-form label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  #poi-form button {
+    margin-top: 5px;
+  }
+  
+  .map-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .map-controls button {
+    width: 40px;
+    height: 40px;
+    margin-bottom: 5px;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.7);
+  }
+  
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 4px;
+    z-index: 100;
+    display: none;
+  }
+  
+  .poi-actions {
+    margin-left: auto;
+  }
+  
+  .poi-actions button {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin-right: 0;
+    margin-left: 5px;
+  }
+  
+  .poi-group {
+    margin-bottom: 12px;
+    display: block;
+  }
+  
+  .poi-group-header {
+    display: flex;
+    align-items: center;
+    padding: 5px;
+    border-radius: 4px;
+    background-color: #333;
+    font-weight: bold;
+  }
+  
+  .poi-group-header label {
+    padding-left: 5px;
+  }
+  
+  #context-menu {
+    position: absolute;
+    display: none;
+    background-color: #333;
+    color: white;
+    border-radius: 4px;
+    padding: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    width: 250px;
+    z-index: 100;
+  }
+  
+  .context-menu-form {
+    padding: 10px;
+  }
+  
+  .context-menu-field {
+    margin-bottom: 10px;
+  }
+  
+  .context-menu-field label {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: bold;
+    font-size: 12px;
+  }
+  
+  .context-menu-field input,
+  .context-menu-field select,
+  .context-menu-field textarea {
+    width: 100%;
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background-color: #444;
+    color: white;
+    font-size: 12px;
+  }
+  
+  .context-menu-field textarea {
+    height: 60px;
+    resize: vertical;
+  }
+  
+  .context-menu-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .context-menu-buttons button {
+    padding: 5px 10px;
+    font-size: 12px;
+    flex: 1;
+    margin: 0 3px;
+  }
+  
+  .context-menu-buttons button:first-child {
+    margin-left: 0;
+  }
+  
+  .context-menu-buttons button:last-child {
+    margin-right: 0;
+  }
+  
+  /* Style for POI type dropdown in context menu to show colors */
+  #context-poi-type option[value="shelter"] {
+    background-color: #272727;
+    color: #ff5252;
+  }
+  
+  #context-poi-type option[value="fragment"] {
+    background-color: #272727;
+    color: #4caf50;
+  }
+  
+  #context-poi-type option[value="machinery"] {
+    background-color: #272727;
+    color: #2e7d32;
+  }
+  
+  #context-poi-type option[value="electronics"] {
+    background-color: #272727;
+    color: #2196f3;
+  }
+  
+  #context-poi-type option[value="npc"] {
+    background-color: #272727;
+    color: #ff9800;
+  }
+  
+  #context-poi-type option[value="secret"] {
+    background-color: #272727;
+    color: #607d8b;
+  }
+  
+  #context-poi-type option[value="boss"] {
+    background-color: #272727;
+    color: #e91e63;
+  }
+  
+  #context-poi-type option[value="bunker"] {
+    background-color: #272727;
+    color: #ff9800;
+  }
+  
+  #context-delete-btn {
+    background-color: #f44336;
+  }
+  
+  #context-delete-btn:hover {
+    background-color: #d32f2f;
+  }
+  
