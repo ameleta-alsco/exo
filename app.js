@@ -520,7 +520,7 @@ function saveContextMenuPoi() {
 // Add this function to save unapproved POIs to a different file
 function saveUnapprovedPoi(poi) {
     $.ajax({
-        url: 'http://localhost:3000/api/save-poi',  // Updated URL to match server
+        url: '/api/save-poi',  // Updated URL to match server
         method: 'POST',
         data: JSON.stringify(poi),
         contentType: 'application/json',
