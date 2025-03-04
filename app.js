@@ -111,7 +111,7 @@ function loadPoisFromFile() {
   Promise.all([
     // Load approved POIs
     $.ajax({
-      url: 'pois/pois.json',
+      url: 'api/pois-approved',
       method: 'GET',
       dataType: 'json'
     }).catch(error => {
@@ -121,7 +121,7 @@ function loadPoisFromFile() {
     
     // Load draft POIs
     $.ajax({
-      url: 'pois/pois-draft.json',
+      url: 'api/pois-draft',
       method: 'GET',
       dataType: 'json'
     }).catch(error => {

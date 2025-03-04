@@ -20,7 +20,7 @@ app.use((req, res, next) => {
 });
 
 // Add specific endpoint for pois.json
-app.get('/pois/pois.json', (req, res) => {
+app.get('/api/pois-approved', (req, res) => {
     const filePath = path.join(__dirname, '../pois/pois.json');
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
@@ -36,7 +36,7 @@ app.get('/pois/echo.json', (req, res) => {
 });
 
 // Add specific endpoint for pois-draft.json
-app.get('/pois/pois-draft.json', (req, res) => {
+app.get('/api/pois-draft', (req, res) => {
     const filePath = path.join(__dirname, '../pois/pois-draft.json');
     if (fs.existsSync(filePath)) {
         res.sendFile(filePath);
